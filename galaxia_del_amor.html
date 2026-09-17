@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🌻 Mi Universo</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020107}
+body{font-family:"Trebuchet MS",Arial,sans-serif;color:white}
+#space{position:fixed;inset:0}
+canvas{display:block}
+
+.title{
+ position:fixed;z-index:10;top:4%;left:0;width:100%;text-align:center;
+ color:#ffe36a;font-weight:900;font-size:clamp(30px,5vw,64px);
+ line-height:1.05;text-shadow:0 0 7px #fff,0 0 22px #ffb300;
+}
+.subtitle{
+ position:fixed;z-index:10;top:15%;left:0;width:100%;text-align:center;
+ color:#fff0a8;font-size:clamp(14px,1.8vw,22px);
+ text-shadow:0 0 10px #ffbf2f;
+}
+
+.phrase{
+ position:fixed;z-index:11;width:190px;text-align:center;
+ color:#ffe58c;font-weight:bold;font-size:clamp(12px,1.25vw,18px);
+ line-height:1.15;text-shadow:0 0 5px #fff,0 0 12px #ffad00;
+}
+.p1{left:3%;top:24%}.p2{left:17%;top:20%}.p3{right:4%;top:22%}
+.p4{right:17%;top:34%}.p5{left:3%;top:54%}.p6{right:3%;top:56%}
+.p7{left:18%;bottom:12%}.p8{right:17%;bottom:10%}
+.p9{left:41%;bottom:7%}.p10{right:28%;top:18%}
+.p11{left:29%;top:39%}.p12{right:5%;bottom:27%}
+
+.flower{
+ display:inline-block;font-size:23px;filter:drop-shadow(0 0 7px #ffd21f);
+ margin:0 3px;
+}
+
+@media(max-width:800px){
+ .phrase{width:130px;font-size:11px}
+ .p2,.p4,.p10{display:none}
+ .title{top:3%;font-size:30px}.subtitle{top:12%;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div id="space"></div>
+
+<div class="title">Feliz Día de las Flores Amarillas 🌻</div>
+<div class="subtitle">Un universo entero para decirte cuánto te amo 💛</div>
+
+<div class="phrase p1">☀️<br>Eres mi sol en los días grises 💛</div>
+<div class="phrase p2">🪐<br>Contigo todo es más bonito</div>
+<div class="phrase p3">🌌<br>Eres lo mejor que me ha pasado</div>
+<div class="phrase p4">✨<br>Te amo más de lo que imaginas</div>
+<div class="phrase p5">🌻<br>Haces que la vida sea más dulce</div>
+<div class="phrase p6">💫<br>Eres mi universo completo</div>
+<div class="phrase p7">❤️<br>Gracias por existir</div>
+<div class="phrase p8">🌎<br>Eres mi hoy, mi mañana y siempre</div>
+<div class="phrase p9">💕<br>Te quiero hoy, mañana y siempre</div>
+<div class="phrase p10">⭐<br>Mi lugar favorito siempre será contigo</div>
+<div class="phrase p11">💛<br>Tu amor es mi mayor regalo</div>
+<div class="phrase p12">✨<br>Cada día te elijo</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+if(!window.THREE){
+ document.body.innerHTML='<div style="color:#ffe36a;text-align:center;padding:40px;font:22px Arial">No se pudo cargar Three.js. Revisa tu conexión a Internet.</div>';
+ return;
+}
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x020107);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,1000);
+camera.position.set(0,5,24);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+document.getElementById("space").appendChild(renderer.domElement);
+
+// estrellas
+const starsGeo=new THREE.BufferGeometry(), count=6500;
+const stars=new Float32Array(count*3);
+for(let i=0;i<count;i++){
+ const r=18+Math.random()*40, a=Math.random()*Math.PI*2;
+ stars[i*3]=Math.cos(a)*r;
+ stars[i*3+1]=(Math.random()-.5)*32;
+ stars[i*3+2]=Math.sin(a)*r;
+}
+starsGeo.setAttribute("position",new THREE.BufferAttribute(stars,3));
+scene.add(new THREE.Points(starsGeo,new THREE.PointsMaterial({
+ color:0xffffff,size:.045,transparent:true,opacity:.95
+})));
+
+// pequeñas estrellas doradas
+const goldGeo=new THREE.BufferGeometry(), gc=900, gold=new Float32Array(gc*3);
+for(let i=0;i<gc;i++){
+ const r=7+Math.random()*23,a=Math.random()*Math.PI*2;
+ gold[i*3]=Math.cos(a)*r;gold[i*3+1]=(Math.random()-.5)*18;gold[i*3+2]=Math.sin(a)*r;
+}
+goldGeo.setAttribute("position",new THREE.BufferAttribute(gold,3));
+scene.add(new THREE.Points(goldGeo,new THREE.PointsMaterial({
+ color:0xffd43d,size:.075
+})));
+
+// núcleo negro
+const core=new THREE.Mesh(
+ new THREE.SphereGeometry(2.5,48,48),
+ new THREE.MeshBasicMaterial({color:0x000000})
+);
+scene.add(core);
+
+// resplandor alrededor
+const glow=new THREE.Mesh(
+ new THREE.SphereGeometry(3.2,40,40),
+ new THREE.MeshBasicMaterial({color:0xffb300,transparent:true,opacity:.06})
+);
+scene.add(glow);
+
+// anillos brillantes del agujero negro
+function torus(radius,tube,color,opacity){
+ const m=new THREE.Mesh(
+  new THREE.TorusGeometry(radius,tube,24,220),
+  new THREE.MeshBasicMaterial({color,transparent:true,opacity})
+ );
+ m.rotation.x=.2;scene.add(m);return m;
+}
+const ring1=torus(3.2,.72,0xffa900,.95);
+const ring2=torus(4.05,.13,0xfff3a0,.9);
+const ring3=torus(5.0,.025,0xffd43d,.55);
+const ring4=torus(6.2,.012,0xffb300,.3);
+
+// brazos de galaxia
+const galGeo=new THREE.BufferGeometry(), n=3500, gp=new Float32Array(n*3);
+for(let i=0;i<n;i++){
+ const rad=2.8+Math.random()*10.5;
+ const arm=i%3;
+ const ang=rad*1.25 + arm*2.094 + (Math.random()-.5)*.7;
+ gp[i*3]=Math.cos(ang)*rad;
+ gp[i*3+1]=(Math.random()-.5)*.75;
+ gp[i*3+2]=Math.sin(ang)*rad;
+}
+galGeo.setAttribute("position",new THREE.BufferAttribute(gp,3));
+const gal=new THREE.Points(galGeo,new THREE.PointsMaterial({
+ color:0xffc83d,size:.065,transparent:true,opacity:.65
+}));
+scene.add(gal);
+
+// planetas
+const planetColors=[0x45d7ff,0xff5d9f,0x9e72ff,0xff8538,0x65e06d,0x62a5ff,0xffd04a];
+const planets=[];
+for(let i=0;i<7;i++){
+ const radius=6+i*1.25;
+ const pivot=new THREE.Group();
+ pivot.rotation.y=i*.8;
+ scene.add(pivot);
+
+ const orbit=new THREE.Mesh(
+  new THREE.TorusGeometry(radius,.009,8,180),
+  new THREE.MeshBasicMaterial({color:0xffd64d,transparent:true,opacity:.18})
+ );
+ orbit.rotation.x=Math.PI/2;
+ scene.add(orbit);
+
+ const size=.34+(i%3)*.12;
+ const planet=new THREE.Mesh(
+  new THREE.SphereGeometry(size,28,28),
+  new THREE.MeshStandardMaterial({color:planetColors[i],roughness:.75,metalness:.1})
+ );
+ planet.position.x=radius;
+ pivot.add(planet);
+
+ if(i===1||i===5){
+  const r=new THREE.Mesh(
+   new THREE.TorusGeometry(size*1.65,.055,12,80),
+   new THREE.MeshBasicMaterial({color:0xffe6a0,transparent:true,opacity:.9})
+  );
+  r.rotation.z=.45;planet.add(r);
+ }
+ planets.push({pivot,planet,speed:(i%2?-.0028:.0035)});
+}
+
+// flores amarillas flotantes
+function sunflower(x,y,z,s=1){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(s);
+ const center=new THREE.Mesh(
+  new THREE.SphereGeometry(.13,12,12),
+  new THREE.MeshBasicMaterial({color:0x713b0b})
+ );g.add(center);
+ for(let j=0;j<10;j++){
+  const p=new THREE.Mesh(
+   new THREE.SphereGeometry(.105,10,10),
+   new THREE.MeshBasicMaterial({color:0xffdf32})
+  );
+  const a=j*Math.PI*2/10;
+  p.position.set(Math.cos(a)*.24,Math.sin(a)*.24,0);g.add(p);
+ }
+ scene.add(g);
+}
+for(let i=0;i<28;i++){
+ const a=Math.random()*Math.PI*2,r=8+Math.random()*10;
+ sunflower(Math.cos(a)*r,(Math.random()-.5)*8,Math.sin(a)*r,.7+Math.random()*.7);
+}
+
+// interacción
+let dragging=false,lastX=0,lastY=0,rx=0,ry=0,zoom=24,paused=false;
+addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});
+addEventListener("pointerup",()=>dragging=false);
+addEventListener("pointermove",e=>{
+ if(!dragging)return;
+ ry+=(e.clientX-lastX)*.005;
+ rx+=(e.clientY-lastY)*.003;
+ lastX=e.clientX;lastY=e.clientY;
+});
+addEventListener("wheel",e=>{
+ zoom=Math.max(12,Math.min(40,zoom+e.deltaY*.012));
+});
+addEventListener("dblclick",()=>paused=!paused);
+
+function animate(){
+ requestAnimationFrame(animate);
+ if(!paused){
+  gal.rotation.y+=.001;
+  ring1.rotation.z+=.004;
+  ring2.rotation.z-=.0025;
+  ring3.rotation.z+=.0015;
+  ring4.rotation.z-=.0008;
+  glow.scale.setScalar(1+.08*Math.sin(performance.now()*.002));
+  planets.forEach(p=>{
+   p.pivot.rotation.y+=p.speed;
+   p.planet.rotation.y+=.01;
+  });
+ }
+ camera.position.set(Math.sin(ry)*zoom,5+rx*9,Math.cos(ry)*zoom);
+ camera.lookAt(0,0,0);
+ renderer.render(scene,camera);
+}
+animate();
+
+addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
+})();
+</script>
+</body>
+</html>
